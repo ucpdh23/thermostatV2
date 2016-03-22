@@ -1,0 +1,25 @@
+// Example JSON config file
+
+{
+  "connection" : {
+    "host": "",
+    "port": 0,
+    "service": "",
+    "authentication" : {
+      "login" : "",
+      "password" : ""
+    }
+  },
+  "masters":[
+      {"email":""},
+      {"email":""}
+  ],
+  "webService" : {
+    "port" : 0
+  },
+  "sparkIo.api" : {
+    "__comment__" : "",
+    "url" : "",
+    "token" : ""
+  }
+}

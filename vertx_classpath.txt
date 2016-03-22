@@ -1,0 +1,7 @@
+src/main/resources
+bin
+out/production/thermostatManagerV2
+out/test/thermostatManagerV2
+build/deps
+build/classes/main
+build/resources/main
