@@ -67,8 +67,11 @@ dependencies {
   compile 'com.google.apis:google-api-services-calendar:v3-rev105-1.19.0'
 
   compile 'org.apache.httpcomponents:httpclient:4.3.3'
+  compile 'commons-io:commons-io:2.5'
 
   compile 'org.apache.commons:commons-collections4:4.0'
+  
+  compile 'edu.stanford.nlp:stanford-parser:3.6.0'
 }
 
 test {
