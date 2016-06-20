@@ -22,6 +22,7 @@ public class HomeVerticle extends Verticle implements Handler<Message<JsonElemen
 		System.out.println("starting Home...");
 		vertx.eventBus().registerHandler(Constant.NEW_NETWORK_DEVICES_MESSAGE, this);
 		vertx.eventBus().registerHandler(Constant.REM_NETWORK_DEVICES_MESSAGE, this);
+		vertx.eventBus().registerHandler(Constant.NO_TEMPERATURE_INFO, this);
 		
 		JsonArray configuration = container.config().getArray("home");
 		
@@ -53,7 +54,7 @@ public class HomeVerticle extends Verticle implements Handler<Message<JsonElemen
 	@Override
 	public void handle(Message<JsonElement> event) {
 		String address = event.address();
-		System.out.println("home " + address);
+
 		if (address.equals(Constant.NEW_NETWORK_DEVICES_MESSAGE)) {
 			JsonArray asArray = event.body().asArray();
 			
@@ -90,6 +91,8 @@ public class HomeVerticle extends Verticle implements Handler<Message<JsonElemen
 				} else 
 					System.out.println("not found");
 			}
+		} else if (address.equals(Constant.NO_TEMPERATURE_INFO)) {
+			vertx.eventBus().publish(Constant.COMMUNICATION_SENDER, ParrotUtils.createMessage(this.mBoss, "no temperature info since 1 hour"));
 		}
 		
 	}

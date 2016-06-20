@@ -30,6 +30,8 @@ public class TemperatureVerticle extends Verticle implements
 	}
 	
 	Map<String, TemperatureInfoData> data = new HashMap<>();
+
+	private long timer;
 	
 	private static class TemperatureInfo {
 		Float value;
@@ -44,12 +46,25 @@ public class TemperatureVerticle extends Verticle implements
 		eb.registerHandler(Constant.TEMPERATURE, this);
 
 		logger.debug("started Temperature");
+		
+		timer = vertx.setTimer(1000 * 60 * 60, TIMER);
 	}
+	
+	final Handler<Long> TIMER = new Handler<Long>() {
+
+		@Override
+		public void handle(Long event) {
+			eb.publish(Constant.NO_TEMPERATURE_INFO, "");
+		}
+	};
 
 	Pattern VALUE = Pattern.compile("(\\d+(\\.\\d+)?)#(.*)");
 	
 	@Override
 	public void handle(Message<String> event) {
+		vertx.cancelTimer(timer);
+		timer = vertx.setTimer(1000 * 60 * 60, TIMER);
+		
 		final String value = event.body();
 		
 		Matcher matcher = VALUE.matcher(value);

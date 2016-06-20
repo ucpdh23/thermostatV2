@@ -20,4 +20,6 @@ public class Constant {
 	
 	public static final String OK_MESSAGE = "ok";
 	public static final String KO_MESSAGE = "ko";
+	
+	public static final String NO_TEMPERATURE_INFO = "temperature.noData";
 }
