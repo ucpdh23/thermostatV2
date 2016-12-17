@@ -64,12 +64,8 @@ public class TemperatureVerticle extends Verticle implements
 		noDataTimeoutTimer = vertx.setTimer(1000 * 60 * 60, NO_TEMPERATURE_TIMER_HANDLER);
 	}
 	
-	final Handler<Long> NO_TEMPERATURE_TIMER_HANDLER = new Handler<Long>() {
-
-		@Override
-		public void handle(Long event) {
-			eb.publish(Constant.NO_TEMPERATURE_INFO, "");
-		}
+	final Handler<Long> NO_TEMPERATURE_TIMER_HANDLER = (Long event) -> {
+		eb.publish(Constant.NO_TEMPERATURE_INFO, "");
 	};
 
 	private static Pattern TIME_VALUE_PATTERN = Pattern.compile("(\\d+(\\.\\d+)?)#(.*)");

@@ -24,10 +24,8 @@ public class ParrotVerticle extends Verticle implements CommunicationListener, H
 		
 		logger.debug("starting Parrot");
 		
-		vertx.setTimer(WAITING_TIME, new Handler<Long>() {
-			   public void handle(Long t) {
-			         eb.send(Constant.COMMUNICATION_SENDER, "");
-			   }
+		vertx.setTimer(WAITING_TIME, t -> {
+			eb.send(Constant.COMMUNICATION_SENDER, "");
 		});
 	}
 	
@@ -68,9 +66,7 @@ public class ParrotVerticle extends Verticle implements CommunicationListener, H
 	}
 	
 	private Handler<Message<String>> REPLY(final String receiver) {
-		return new Handler<Message<String>>() {
-		@Override
-		public void handle(Message<String> event) {
+		return (Message<String> event) -> {
 			String message = event.body();
 			
 			if (message.equals(Constant.OK_MESSAGE)) {
@@ -80,8 +76,6 @@ public class ParrotVerticle extends Verticle implements CommunicationListener, H
 			} else {
 				channel.send(receiver, message);
 			}
-			
-		}
-	};
+		};
 	}
 }

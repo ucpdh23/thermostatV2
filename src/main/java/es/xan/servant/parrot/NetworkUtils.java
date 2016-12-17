@@ -18,10 +18,10 @@ public class NetworkUtils {
 	}
 
 	private static List<Map<String,Object>> transformList(List<Device> items) {
-		return items.stream().map(item-> extractDeviceInfo(item)).collect(Collectors.toList());
+		return items.stream().map(item-> asMap(item)).collect(Collectors.toList());
 	}
 
-	private static Map<String, Object> extractDeviceInfo(Device item) {
+	private static Map<String, Object> asMap(Device item) {
 		Map<String,Object> result = new HashMap<>();
 		result.put("mac", item.mac);
 		result.put("name", item.name);

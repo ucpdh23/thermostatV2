@@ -23,6 +23,7 @@ public class CoreVerticle extends Verticle implements Handler<Message<String>> {
 		
 		logger.debug("started core");
 	}
+	
 	@Override
 	public void handle(Message<String> event) {
 		final String body = event.body();

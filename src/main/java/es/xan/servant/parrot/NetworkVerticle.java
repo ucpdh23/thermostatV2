@@ -56,8 +56,7 @@ public class NetworkVerticle extends Verticle implements Handler<Message<String>
 		}
 	}
 
-	private List<Device> resolveDiffsDevices(List<Device> curDevices,
-			List<Device> newDevices) {
+	private List<Device> resolveDiffsDevices(List<Device> curDevices, List<Device> newDevices) {
 		return newDevices.stream().filter(it -> !exists(it, curDevices)).collect(Collectors.toList());
 	}
 
