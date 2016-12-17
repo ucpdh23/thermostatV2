@@ -16,27 +16,41 @@ import org.vertx.java.platform.Verticle;
 public class TemperatureVerticle extends Verticle implements
 		Handler<Message<String>> {
 
+	private static final int BUFFER_SIZE = 5000;
+	
 	private Logger logger;
 
 	private EventBus eb;
 	
-	static class TemperatureInfoData {
-		TemperatureInfo[] buffer;
+	private static class Measure {
+		Float temperature;
+		Calendar timestamp;
+		
+		public Measure(Float temperature) {
+			this.temperature = temperature;
+			this.timestamp = Calendar.getInstance();
+		}
+	}
+
+	static class RoomTemperatureData {
+		Measure[] measures;
 		int nextIndex = 0;
 		
-		public TemperatureInfoData() {
-			this.buffer = new TemperatureInfo[5000];
+		public RoomTemperatureData() {
+			this.measures = new Measure[BUFFER_SIZE];
+		}
+		
+		public void register(Measure measure) {
+			this.measures[this.nextIndex] = measure;
+			this.nextIndex = (this.nextIndex + 1) % BUFFER_SIZE;
+
 		}
 	}
 	
-	Map<String, TemperatureInfoData> data = new HashMap<>();
+	private Map<String, RoomTemperatureData> storage = new HashMap<>();
 
-	private long timer;
+	private long noDataTimeoutTimer;
 	
-	private static class TemperatureInfo {
-		Float value;
-		Calendar date;
-	}
 
 	@Override
 	public void start() {
@@ -47,10 +61,10 @@ public class TemperatureVerticle extends Verticle implements
 
 		logger.debug("started Temperature");
 		
-		timer = vertx.setTimer(1000 * 60 * 60, TIMER);
+		noDataTimeoutTimer = vertx.setTimer(1000 * 60 * 60, NO_TEMPERATURE_TIMER_HANDLER);
 	}
 	
-	final Handler<Long> TIMER = new Handler<Long>() {
+	final Handler<Long> NO_TEMPERATURE_TIMER_HANDLER = new Handler<Long>() {
 
 		@Override
 		public void handle(Long event) {
@@ -58,37 +72,34 @@ public class TemperatureVerticle extends Verticle implements
 		}
 	};
 
-	Pattern VALUE = Pattern.compile("(\\d+(\\.\\d+)?)#(.*)");
+	private static Pattern TIME_VALUE_PATTERN = Pattern.compile("(\\d+(\\.\\d+)?)#(.*)");
 	
 	@Override
 	public void handle(Message<String> event) {
-		vertx.cancelTimer(timer);
-		timer = vertx.setTimer(1000 * 60 * 60, TIMER);
+		vertx.cancelTimer(noDataTimeoutTimer);
+		noDataTimeoutTimer = vertx.setTimer(1000 * 60 * 60, NO_TEMPERATURE_TIMER_HANDLER);
 		
 		final String value = event.body();
 		
-		Matcher matcher = VALUE.matcher(value);
+		Matcher matcher = TIME_VALUE_PATTERN.matcher(value);
 		if (matcher.matches()) {
-			TemperatureInfo temperatureInfo = new TemperatureInfo();
-			temperatureInfo.date = Calendar.getInstance();
-			temperatureInfo.value = Float.valueOf(matcher.group(1));
-			
+			final Measure temperatureInfo = new Measure(Float.valueOf(matcher.group(1)));
 			storeInBuffer(matcher.group(3), temperatureInfo);
+			
 		} else if (value.equals("FW_GET")) {
-			if (data.isEmpty()) {
+			if (storage.isEmpty()) {
 				event.reply(Constant.KO_MESSAGE);
 			} else {
 				StringBuilder builder = new StringBuilder();
-				for (Entry<String, TemperatureInfoData> item : data.entrySet()) {
+				for (Entry<String, RoomTemperatureData> item : storage.entrySet()) {
 					String place = item.getKey();
-					TemperatureInfoData temperatureData = item.getValue();
+					RoomTemperatureData temperatureData = item.getValue();
 					
 					int prevIndex = ((temperatureData.nextIndex - 1) + 5000) % 5000;
-					TemperatureInfo temp = temperatureData.buffer[prevIndex];
+					Measure temp = temperatureData.measures[prevIndex];
 					
-					if (temp == null) {
-					} else {
-						builder.append("Place:").append(place).append(":").append(temp.value.toString() + " at " + temp.date.getTime()).append("\n");
+					if (temp != null) {
+						builder.append("Place:").append(place).append(":").append(temp.temperature.toString() + " at " + temp.timestamp.getTime()).append("\n");
 					}
 				}
 				event.reply(builder.toString());
@@ -96,14 +107,14 @@ public class TemperatureVerticle extends Verticle implements
 		} else if("LIST".equals(value)) {
 			StringBuilder builder = new StringBuilder();
 			
-			for (Entry<String, TemperatureInfoData> item : data.entrySet()) {
+			for (Entry<String, RoomTemperatureData> item : storage.entrySet()) {
 				String place = item.getKey();
-				TemperatureInfoData temperatureData = item.getValue();
+				RoomTemperatureData temperatureData = item.getValue();
 				
 				builder.append("Place:").append(place).append("\n");
 				for (int i=0; i < temperatureData.nextIndex; i++) {
-					TemperatureInfo temp = temperatureData.buffer[i];
-					builder.append("" + temp.date.getTime() + ": " + temp.value.toString() + "\n");
+					Measure temp = temperatureData.measures[i];
+					builder.append("" + temp.timestamp.getTime() + ": " + temp.temperature.toString() + "\n");
 				}
 
 			}
@@ -114,19 +125,9 @@ public class TemperatureVerticle extends Verticle implements
 
 	}
 
-	private void storeInBuffer(String group, TemperatureInfo temperatureInfo) {
-		TemperatureInfoData temperatureInfoData = data.get(group);
-		
-		if (temperatureInfoData == null) {
-			temperatureInfoData = new TemperatureInfoData();
-		}
-		
-		data.put(group, temperatureInfoData);
-		
-		
-		
-		temperatureInfoData.buffer[temperatureInfoData.nextIndex] = temperatureInfo;
-		temperatureInfoData.nextIndex = (temperatureInfoData.nextIndex + 1) % 5000;
+	private void storeInBuffer(String group, Measure temperatureInfo) {
+		final RoomTemperatureData temperatureInfoData = storage.computeIfAbsent(group, (x) -> { return new RoomTemperatureData(); });
+		temperatureInfoData.register(temperatureInfo);
 	}
 
 }

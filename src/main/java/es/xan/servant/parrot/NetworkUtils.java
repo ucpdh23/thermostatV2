@@ -1,14 +1,14 @@
 package es.xan.servant.parrot;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
-import es.xan.servant.network.RouterManager.Device;
+import es.xan.servant.network.RouterPageManager.Device;
 
 public class NetworkUtils {
 	public static JsonArray createArray(List<Device> items) {
@@ -18,14 +18,10 @@ public class NetworkUtils {
 	}
 
 	private static List<Map<String,Object>> transformList(List<Device> items) {
-		List<Map<String,Object>> result = new ArrayList<>();
-		for (Device item : items) {
-			result.add(transformItem(item));
-		}
-		return result;
+		return items.stream().map(item-> extractDeviceInfo(item)).collect(Collectors.toList());
 	}
 
-	private static Map<String, Object> transformItem(Device item) {
+	private static Map<String, Object> extractDeviceInfo(Device item) {
 		Map<String,Object> result = new HashMap<>();
 		result.put("mac", item.mac);
 		result.put("name", item.name);

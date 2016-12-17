@@ -3,24 +3,25 @@ package es.xan.servant.parrot;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.platform.Verticle;
 
-import es.xan.servant.network.RouterManager;
-import es.xan.servant.network.RouterManager.Device;
+import es.xan.servant.network.RouterPageManager;
+import es.xan.servant.network.RouterPageManager.Device;
 
 public class NetworkVerticle extends Verticle implements Handler<Message<String>>  {
 	
-	RouterManager manager = null;
+	RouterPageManager manager = null;
 	
 	List<Device> devices;
 	
 	public void start() {
 		System.out.println("starting Network...");
-		devices = new ArrayList<RouterManager.Device>();
-		manager = new RouterManager(container.config().getObject("router"));
+		devices = new ArrayList<RouterPageManager.Device>();
+		manager = new RouterPageManager(container.config().getObject("router"));
 	
 		vertx.eventBus().registerHandler(Constant.CHECK_NETWORK_MESSAGE, this);
 		
@@ -57,14 +58,7 @@ public class NetworkVerticle extends Verticle implements Handler<Message<String>
 
 	private List<Device> resolveDiffsDevices(List<Device> curDevices,
 			List<Device> newDevices) {
-		List<Device> result = new ArrayList<>();
-		for (Device newItem : newDevices) {
-			if (!exists(newItem, curDevices)) {
-				result.add(newItem);
-			}
-		}
-
-		return result;
+		return newDevices.stream().filter(it -> !exists(it, curDevices)).collect(Collectors.toList());
 	}
 
 	private boolean exists(Device newItem, List<Device> newDevices) {

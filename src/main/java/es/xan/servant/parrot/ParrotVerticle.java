@@ -7,22 +7,24 @@ import org.vertx.java.core.logging.Logger;
 import org.vertx.java.platform.Verticle;
 
 public class ParrotVerticle extends Verticle implements CommunicationListener, Handler<Message<String>> {
-	private GTalkManager mouth;
+	private GTalkManager channel;
 	private EventBus eb;
 	private Logger logger;
+	
+	private static final int WAITING_TIME = 30 * 1000;
 	
 	public void start() {
 		logger = container.logger();
 
-		mouth = new GTalkManager(container.config().getObject("connection"));
-		mouth.setCommunicationListener(this);
+		channel = new GTalkManager(container.config().getObject("connection"));
+		channel.setCommunicationListener(this);
 		
 		eb = vertx.eventBus();
 		eb.registerHandler(Constant.COMMUNICATION_SENDER, this);
 		
 		logger.debug("starting Parrot");
 		
-		vertx.setTimer(30 * 1000, new Handler<Long>() {
+		vertx.setTimer(WAITING_TIME, new Handler<Long>() {
 			   public void handle(Long t) {
 			         eb.send(Constant.COMMUNICATION_SENDER, "");
 			   }
@@ -39,8 +41,8 @@ public class ParrotVerticle extends Verticle implements CommunicationListener, H
 
 	@Override
 	public void handle(Message<String> event) {
-		if (!mouth.isInit()) {
-			mouth.start();
+		if (!channel.isInit()) {
+			channel.start();
 			eb.publish(Constant.CORE, Constant.CORE_CHAT_ACTIVE);
 			return;
 		}
@@ -55,12 +57,12 @@ public class ParrotVerticle extends Verticle implements CommunicationListener, H
 		
 		if (Constant.PARROT_CREATE_CHAT.equals(message)) {
 			try {
-				mouth.createChat(sender);
+				channel.createChat(sender);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		} else {
-			mouth.send(sender, message);
+			channel.send(sender, message);
 		}
 		
 	}
@@ -72,11 +74,11 @@ public class ParrotVerticle extends Verticle implements CommunicationListener, H
 			String message = event.body();
 			
 			if (message.equals(Constant.OK_MESSAGE)) {
-				mouth.send(receiver, "Your wish is my command");
+				channel.send(receiver, "Your wish is my command");
 			} else if (message.equals(Constant.KO_MESSAGE)) {
-				mouth.send(receiver, "I'm so sorry, but I do not undestand what you say");
+				channel.send(receiver, "I'm so sorry, but I do not undestand what you say");
 			} else {
-				mouth.send(receiver, message);
+				channel.send(receiver, message);
 			}
 			
 		}

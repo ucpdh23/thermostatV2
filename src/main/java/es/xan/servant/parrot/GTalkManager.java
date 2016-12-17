@@ -18,29 +18,23 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.vertx.java.core.json.JsonObject;
 
-/**
- * Hello world!
- * 
- */
+
 public class GTalkManager implements MessageListener {
 	
-	Map<String, Chat> openedChats = new HashMap<>();
-
 	private JsonObject configuration;
-	
+
+	private Map<String, Chat> conversations = new HashMap<>();
+
+	private XMPPConnection connection;
+	private CommunicationListener listener;
 	
 	public GTalkManager(JsonObject configuration) {
 		this.configuration = configuration;
 	}
-
-
-	private XMPPConnection connection;
 	
 	public boolean isInit() {
 		return connection != null;
 	}
-	
-	private CommunicationListener listener;
 	
 	public void setCommunicationListener(CommunicationListener listener) {
 		this.listener = listener;
@@ -52,7 +46,6 @@ public class GTalkManager implements MessageListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	private void init() throws Exception {
@@ -129,11 +122,11 @@ public class GTalkManager implements MessageListener {
 
 	public boolean send(String receptor, String message) {
 		try {
-			Chat chat = openedChats.get(receptor);
+			Chat chat = conversations.get(receptor);
 			
 			if (chat == null)  {
 				chat = ChatManager.getInstanceFor(connection).createChat(receptor, this);
-				openedChats.put(receptor, chat);
+				conversations.put(receptor, chat);
 			}
 			
 			this.msg = new Message(receptor, Message.Type.chat);

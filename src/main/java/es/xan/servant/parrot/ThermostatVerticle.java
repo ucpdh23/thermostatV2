@@ -35,7 +35,6 @@ public class ThermostatVerticle extends Verticle implements Handler<Message<Stri
 	private JsonObject configuration;
 	
 	
-	
 	@Override
 	public void start() {
 		logger = container.logger();

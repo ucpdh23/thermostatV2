@@ -25,14 +25,14 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.vertx.java.core.json.JsonObject;
 
-public class RouterManager {
+public class RouterPageManager {
 	
 	private JsonObject mConfiguration;
 	
 	private static final String LOGIN_URI = "/cgi-bin/login.exe";
 	private static final String DEVICES_URI = "/pc_list_view.stm";
 
-	public RouterManager(JsonObject configuration) {
+	public RouterPageManager(JsonObject configuration) {
 		this.mConfiguration = configuration;
 	}
 
