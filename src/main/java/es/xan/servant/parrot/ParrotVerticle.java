@@ -20,12 +20,12 @@ public class ParrotVerticle extends Verticle implements CommunicationListener, H
 		channel.setCommunicationListener(this);
 		
 		eb = vertx.eventBus();
-		eb.registerHandler(Constant.COMMUNICATION_SENDER, this);
+		eb.registerHandler(Constant.PARRONT_VERTICLE, this);
 		
 		logger.debug("starting Parrot");
 		
 		vertx.setTimer(WAITING_TIME, t -> {
-			eb.send(Constant.COMMUNICATION_SENDER, "");
+			eb.send(Constant.PARRONT_VERTICLE, "");
 		});
 	}
 	
@@ -34,14 +34,14 @@ public class ParrotVerticle extends Verticle implements CommunicationListener, H
 	@Override
 	public void onMessage(String sender, String message) {
 		lastSender = sender; 
-		eb.send(Constant.COMMUNICATION_RECEIVE, message, REPLY(sender));
+		eb.send(Constant.BRAIN_VERTICLE, message, REPLY(sender));
 	}
 
 	@Override
 	public void handle(Message<String> event) {
 		if (!channel.isInit()) {
 			channel.start();
-			eb.publish(Constant.CORE, Constant.CORE_CHAT_ACTIVE);
+			eb.publish(Constant.CORE_VERTICLE, Constant.CORE_CHAT_ACTIVE);
 			return;
 		}
 		

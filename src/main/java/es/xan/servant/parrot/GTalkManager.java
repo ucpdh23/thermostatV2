@@ -80,8 +80,7 @@ public class GTalkManager implements MessageListener {
 
 	public void processMessage(Chat chat, Message message) {
 
-		if (message.getType().equals(Message.Type.chat)
-				&& message.getBody() != null) {
+		if (message.getType().equals(Message.Type.chat) && message.getBody() != null) {
 			
 			if (listener != null) {
 				listener.onMessage(message.getFrom(), message.getBody());

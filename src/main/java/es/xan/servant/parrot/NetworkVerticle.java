@@ -17,10 +17,13 @@ public class NetworkVerticle extends Verticle implements Handler<Message<String>
 	RouterPageManager manager = null;
 	
 	List<Device> devices;
+	List<Device> quarantine;
 	
 	public void start() {
 		System.out.println("starting Network...");
 		devices = new ArrayList<RouterPageManager.Device>();
+		quarantine = new ArrayList<RouterPageManager.Device>();
+		
 		manager = new RouterPageManager(container.config().getObject("router"));
 	
 		vertx.eventBus().registerHandler(Constant.CHECK_NETWORK_MESSAGE, this);
@@ -31,7 +34,7 @@ public class NetworkVerticle extends Verticle implements Handler<Message<String>
 		
 		System.out.println("started Network...");
 	}
-
+		
 	@Override
 	public void handle(Message<String> event) {
 		if (Constant.CHECK_NETWORK_MESSAGE.equals(event.address())) {
@@ -39,22 +42,33 @@ public class NetworkVerticle extends Verticle implements Handler<Message<String>
 				List<Device> newDevices = manager.getDevices();
 				
 				List<Device> newItems = resolveDiffsDevices(devices, newDevices);
-				List<Device> remItems = resolveDiffsDevices(newDevices, devices);
+				List<Device> newsInQuarantine = resolveIntersectionDevices(newItems, quarantine);
+				List<Device> newsToNotify = resolveDiffsDevices(quarantine, newItems);
 				
-				if (!newItems.isEmpty()) {
-					vertx.eventBus().publish(Constant.NEW_NETWORK_DEVICES_MESSAGE, NetworkUtils.createArray(newItems));
+				List<Device> removedToNotify = resolveDiffsDevices(newsInQuarantine, quarantine);
+				
+				List<Device> lost = resolveDiffsDevices(newDevices, devices);
+				
+				if (!newsToNotify.isEmpty()) {
+					vertx.eventBus().publish(Constant.NEW_NETWORK_DEVICES_MESSAGE, NetworkUtils.createArray(newsToNotify));
 				}
 				
-				if (!remItems.isEmpty()) {
-					vertx.eventBus().publish(Constant.REM_NETWORK_DEVICES_MESSAGE, NetworkUtils.createArray(remItems));
+				if (!removedToNotify.isEmpty()) {
+					vertx.eventBus().publish(Constant.REM_NETWORK_DEVICES_MESSAGE, NetworkUtils.createArray(removedToNotify));
 				}
 				
 				devices = newDevices;
+				quarantine = lost;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
+
+	private List<Device> resolveIntersectionDevices(List<Device> newDevices, List<Device> quarantine2) {
+		return newDevices.stream().filter(it -> exists(it, quarantine2)).collect(Collectors.toList());
+	}
+
 
 	private List<Device> resolveDiffsDevices(List<Device> curDevices, List<Device> newDevices) {
 		return newDevices.stream().filter(it -> !exists(it, curDevices)).collect(Collectors.toList());

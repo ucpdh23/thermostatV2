@@ -34,18 +34,18 @@ public class WebServerVerticle extends Verticle {
 		matcher.get("/temperature/:place/:value", request -> {
 				String value = request.params().get("value");
 				String place = request.params().get("place");
-				eb.send(Constant.TEMPERATURE, value + "#" + place);
+				eb.send(Constant.TEMPERATURE_VERTICLE, value + "#" + place);
 				
 				request.response().end("ok");
 			});
 		
 		matcher.get("/listTemperature", request -> {
-				eb.send(Constant.TEMPERATURE, "LIST", (Message<String> event)
+				eb.send(Constant.TEMPERATURE_VERTICLE, "LIST", (Message<String> event)
 						-> request.response().end(event.body()));
 			});
 		
 		matcher.get("/boiler/:operation", request -> {
-				eb.send(Constant.THERMOSTAT, request.params().get("operation"));
+				eb.send(Constant.THERMOSTAT_VERTICLE, request.params().get("operation"));
 
 				request.response().end("ok");
 			});

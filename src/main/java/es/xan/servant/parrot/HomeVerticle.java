@@ -12,36 +12,40 @@ import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
 import es.xan.servant.network.RouterPageManager.Device;
+import es.xan.servant.parrot.translator.TranslationType;
 
 public class HomeVerticle extends Verticle implements Handler<Message<JsonElement>> {
 	
 	private Map<String, Person> population = new HashMap<>();
 	private String mBoss;
 	
+	private static final boolean OUTSIDE_HOME = false;
+	private static final boolean INSIDE_HOME = true;
+	
+	
 	public void start() {
 		System.out.println("starting Home...");
 		
+		vertx.eventBus().registerHandler(Constant.HOME_VERTICLE, this);
+
 		vertx.eventBus().registerHandler(Constant.NEW_NETWORK_DEVICES_MESSAGE,	this);
 		vertx.eventBus().registerHandler(Constant.REM_NETWORK_DEVICES_MESSAGE,	this);
 		vertx.eventBus().registerHandler(Constant.NO_TEMPERATURE_INFO,			this);
+		
 		
 		final JsonArray configuration = container.config().getArray("home");
 		
 		System.out.println("after config " + configuration);
 		
 		for (int i=0; i < configuration.asArray().size(); i++) {
-			JsonObject personInfo = (JsonObject) configuration.asArray().get(i);
-			String name = personInfo.getString("name");
-			String mac  = personInfo.getString("mac");
+			final JsonObject personInfo = (JsonObject) configuration.asArray().get(i);
 			
-			
-			Person person_ = new Person();
-			person_.name = name;
-			person_.inHome = false;
-			
-			System.out.println("peson:" + person_.name);
-			
-			population.put(mac, person_);
+			this.population.put(
+					personInfo.getString("mac"),
+					new Person() {{
+						this.name = personInfo.getString("name");
+						this.inHome = false;
+					}});
 		}
 		
 		JsonArray masters = container.config().getArray("masters");
@@ -54,6 +58,17 @@ public class HomeVerticle extends Verticle implements Handler<Message<JsonElemen
 
 	@Override
 	public void handle(Message<JsonElement> event) {
+		if (TranslationType.GET.matchEvent(event)) {
+			StringBuilder builder = new StringBuilder();
+			
+			for (Person person : population.values()) {
+				builder.append(person.name).append(":").append(person.inHome?" at home" : " outside").append("\n");
+			}
+			
+			event.reply(builder.toString());
+			return;
+		}
+		
 		String address = event.address();
 		
 		switch (address) {
@@ -69,15 +84,15 @@ public class HomeVerticle extends Verticle implements Handler<Message<JsonElemen
 				if (person == null) continue;
 				
 				if (Constant.REM_NETWORK_DEVICES_MESSAGE.equals(address) && person.inHome) {
-					updatePerson(person, false);
+					updatePerson(person, OUTSIDE_HOME);
 				} else if (Constant.NEW_NETWORK_DEVICES_MESSAGE.equals(address) && !person.inHome) {
-					updatePerson(person, true);
+					updatePerson(person, INSIDE_HOME);
 				}
 			}
 			break;
 			
 		case Constant.NO_TEMPERATURE_INFO:
-			vertx.eventBus().publish(Constant.COMMUNICATION_SENDER, ParrotUtils.createMessage(this.mBoss, "no temperature info since 1 hour"));
+			vertx.eventBus().publish(Constant.PARRONT_VERTICLE, ParrotUtils.createMessage(this.mBoss, "no temperature info since 1 hour"));
 			break;
 		}
 		
@@ -87,10 +102,10 @@ public class HomeVerticle extends Verticle implements Handler<Message<JsonElemen
 		person.inHome = atHome;
 		if (atHome) {
 			vertx.eventBus().publish(Constant.PERSON_AT_HOME, person.name);
-			vertx.eventBus().publish(Constant.COMMUNICATION_SENDER, ParrotUtils.createMessage(this.mBoss, person.name + " at home"));
+//			vertx.eventBus().publish(Constant.PARRONT_VERTICLE, ParrotUtils.createMessage(this.mBoss, person.name + " at home"));
 		} else {
 			vertx.eventBus().publish(Constant.PERSON_LEAVE_HOME, person.name);
-			vertx.eventBus().publish(Constant.COMMUNICATION_SENDER, ParrotUtils.createMessage(this.mBoss, person.name + " leave home"));
+//			vertx.eventBus().publish(Constant.PARRONT_VERTICLE, ParrotUtils.createMessage(this.mBoss, person.name + " leave home"));
 		}
 	}
 

@@ -8,10 +8,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.EventBus;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.logging.Logger;
 import org.vertx.java.platform.Verticle;
+
+import es.xan.servant.parrot.translator.TranslationType;
 
 public class TemperatureVerticle extends Verticle implements
 		Handler<Message<String>> {
@@ -20,8 +21,6 @@ public class TemperatureVerticle extends Verticle implements
 	
 	private Logger logger;
 
-	private EventBus eb;
-	
 	private static class Measure {
 		Float temperature;
 		Calendar timestamp;
@@ -56,8 +55,7 @@ public class TemperatureVerticle extends Verticle implements
 	public void start() {
 		logger = container.logger();
 
-		eb = vertx.eventBus();
-		eb.registerHandler(Constant.TEMPERATURE, this);
+		vertx.eventBus().registerHandler(Constant.TEMPERATURE_VERTICLE, this);
 
 		logger.debug("started Temperature");
 		
@@ -65,7 +63,7 @@ public class TemperatureVerticle extends Verticle implements
 	}
 	
 	final Handler<Long> NO_TEMPERATURE_TIMER_HANDLER = (Long event) -> {
-		eb.publish(Constant.NO_TEMPERATURE_INFO, "");
+		vertx.eventBus().publish(Constant.NO_TEMPERATURE_INFO, "");
 	};
 
 	private static Pattern TIME_VALUE_PATTERN = Pattern.compile("(\\d+(\\.\\d+)?)#(.*)");
@@ -82,7 +80,7 @@ public class TemperatureVerticle extends Verticle implements
 			final Measure temperatureInfo = new Measure(Float.valueOf(matcher.group(1)));
 			storeInBuffer(matcher.group(3), temperatureInfo);
 			
-		} else if (value.equals("FW_GET")) {
+		} else if (TranslationType.GET.matchEvent(event)) {
 			if (storage.isEmpty()) {
 				event.reply(Constant.KO_MESSAGE);
 			} else {

@@ -24,7 +24,7 @@ public class BrainVerticle extends Verticle implements Handler<Message<String>> 
 		logger = container.logger();
 		
 		eb = vertx.eventBus();
-		eb.registerHandler(Constant.COMMUNICATION_RECEIVE, this);
+		eb.registerHandler(Constant.BRAIN_VERTICLE, this);
 		
 		logger.debug("started brain");
 	}
@@ -65,7 +65,7 @@ public class BrainVerticle extends Verticle implements Handler<Message<String>> 
 
 		@Override
 		public void handle(Message<String> event) {
-			eb.send(Constant.COMMUNICATION_RECEIVE, message);
+			eb.send(Constant.BRAIN_VERTICLE, message);
 		}
 	};
 	}

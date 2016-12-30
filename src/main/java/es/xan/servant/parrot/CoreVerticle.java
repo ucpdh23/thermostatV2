@@ -19,7 +19,7 @@ public class CoreVerticle extends Verticle implements Handler<Message<String>> {
 		configuration = container.config().getArray("masters");
 		
 		eb = vertx.eventBus();
-		eb.registerHandler(Constant.CORE, this);
+		eb.registerHandler(Constant.CORE_VERTICLE, this);
 		
 		logger.debug("started core");
 	}
@@ -33,7 +33,7 @@ public class CoreVerticle extends Verticle implements Handler<Message<String>> {
 				LinkedHashMap<String,String> emailInfo = (LinkedHashMap<String, String>) item;
 				String email = emailInfo.get("email");
 				
-				eb.publish(Constant.COMMUNICATION_SENDER, ParrotUtils.createMessage(email, Constant.PARROT_CREATE_CHAT));
+				eb.publish(Constant.PARRONT_VERTICLE, ParrotUtils.createMessage(email, Constant.PARROT_CREATE_CHAT));
 			}
 		}
 	}

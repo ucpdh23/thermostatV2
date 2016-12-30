@@ -15,7 +15,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.EventBus;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.core.logging.Logger;
@@ -29,11 +28,8 @@ public class ThermostatVerticle extends Verticle implements Handler<Message<Stri
 	
 	private boolean boilerOn;
 
-	private EventBus eb;
-
 	private static final String CONFIG = "sparkIo.api";
 	private JsonObject configuration;
-	
 	
 	@Override
 	public void start() {
@@ -42,8 +38,7 @@ public class ThermostatVerticle extends Verticle implements Handler<Message<Stri
 
 		httpclient = HttpClients.createDefault();
 		
-		eb = vertx.eventBus();
-		eb.registerHandler(Constant.THERMOSTAT, this);
+		vertx.eventBus().registerHandler(Constant.THERMOSTAT_VERTICLE, this);
 		
 		boilerOn = false;
 		
