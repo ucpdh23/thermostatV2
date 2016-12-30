@@ -1,35 +1,38 @@
 servant
 =======
 
+*My Home Automation Bot*
 
-Servant is a system though to provide some basic functionality and generic operations to a person. 
-Providing a simple interfaces (for example via xmpp) the human can communicate with the system, to 
-request actions system must do, provide new information, etc...
+Introduction
+-----------------------------
 
-In any case, although it could be more complicated, the implementation tries to be generic enough to
-provide a full bidirectional communication. In some aspect, the requested action's nature could require
-some monitoring operations (zookeeper nodes, servers, ...). This special action could provokes a final human
-intervention (to shutdown the server, send an email, ...) so, in this cases, system can ask the human for something.
+- Do you what to know if everything is in order at home? Servant is your bot.
 
+- Do you what to control your home remotely, switching lights or a boiler on or off? Servant can manage your requests.
 
-At first, this system is split in some pieces:
-- command, which provides a generic CLI-shell system. Using a classic Command pattern, commands can be appended
-into the system to provide more functionality to the system.
-- communication, which manages all the communication system. 
-- intelligence, a kind of IA generic architecture to provide a more natural language interface.
+- Do you need someone to warn you about the incidents at home? Servant can it for you.
 
+- Do you like to monitor the status of your home? Servant likes to do what for you.
 
-Remainder work:
-- Unit test
-- Concept of application context and session.
-- Concept of automatic operations (for example rss monitoring)
+ 
+Providing a simple interface (xmpp), you can communicate with this bot, in order to 
+request actions or to ask questions about your home status
+
+Servant, using some IA techniques, can handle some situations at home or suggest options in order to manage some ordinary operations at home, simplifying life and making the World a better place. 
+
+TODO List:
+
+* Unit test
+* Concept of application context and session.
+* Concept of automatic operations (for example rss monitoring)
 
 Future work:
-- Implement a real IA system, to provided an automatic learning system that suggests things from common behaviour.
+
+* Implement a real IA system, in order to provide an automatic learning system that suggests things from common behaviour.
 
 
-Some generic ideas regarding the future of the system
-=====================================================
+References
+---------------------------
 
 http://conceptnet5.media.mit.edu/web/c/en/saxophone
 http://conceptnet5.media.mit.edu/data/5.1/c/en/download
