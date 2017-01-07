@@ -8,14 +8,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.Vertx;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.logging.Logger;
 import org.vertx.java.platform.Verticle;
 
 import es.xan.servant.parrot.translator.TranslationType;
 
-public class TemperatureVerticle extends Verticle implements
-		Handler<Message<String>> {
+public class TemperatureVerticle extends Verticle implements Handler<Message<String>> {
 
 	private static final int BUFFER_SIZE = 5000;
 	
@@ -32,24 +32,37 @@ public class TemperatureVerticle extends Verticle implements
 	}
 
 	static class RoomTemperatureData {
-		Measure[] measures;
-		int nextIndex = 0;
+		private final Vertx mVertx;
+		private final Measure[] measures;
+		private final String mRoom;
 		
-		public RoomTemperatureData() {
+		private int nextIndex = 0;
+		private long noDataTimeoutTimer;
+		
+		public RoomTemperatureData(Vertx vertx, String room) {
+			this.mVertx = vertx;
+			this.mRoom = room;
+			
 			this.measures = new Measure[BUFFER_SIZE];
+			this.noDataTimeoutTimer = this.mVertx.setTimer(1000 * 60 * 60, createTimerForRoom(this.mRoom));
 		}
 		
 		public void register(Measure measure) {
+			this.mVertx.cancelTimer(noDataTimeoutTimer);
+			noDataTimeoutTimer = mVertx.setTimer(1000 * 60 * 60, createTimerForRoom(this.mRoom));
+				
 			this.measures[this.nextIndex] = measure;
 			this.nextIndex = (this.nextIndex + 1) % BUFFER_SIZE;
-
+		}
+		
+		private Handler<Long> createTimerForRoom(String room) {
+			return (Long event) -> {
+				this.mVertx.eventBus().publish(Constant.EVENT_NO_TEMPERATURE_INFO, room);
+			};
 		}
 	}
 	
 	private Map<String, RoomTemperatureData> storage = new HashMap<>();
-
-	private long noDataTimeoutTimer;
-	
 
 	@Override
 	public void start() {
@@ -58,21 +71,12 @@ public class TemperatureVerticle extends Verticle implements
 		vertx.eventBus().registerHandler(Constant.TEMPERATURE_VERTICLE, this);
 
 		logger.debug("started Temperature");
-		
-		noDataTimeoutTimer = vertx.setTimer(1000 * 60 * 60, NO_TEMPERATURE_TIMER_HANDLER);
 	}
 	
-	final Handler<Long> NO_TEMPERATURE_TIMER_HANDLER = (Long event) -> {
-		vertx.eventBus().publish(Constant.NO_TEMPERATURE_INFO, "");
-	};
-
 	private static Pattern TIME_VALUE_PATTERN = Pattern.compile("(\\d+(\\.\\d+)?)#(.*)");
 	
 	@Override
 	public void handle(Message<String> event) {
-		vertx.cancelTimer(noDataTimeoutTimer);
-		noDataTimeoutTimer = vertx.setTimer(1000 * 60 * 60, NO_TEMPERATURE_TIMER_HANDLER);
-		
 		final String value = event.body();
 		
 		Matcher matcher = TIME_VALUE_PATTERN.matcher(value);
@@ -119,8 +123,8 @@ public class TemperatureVerticle extends Verticle implements
 
 	}
 
-	private void storeInBuffer(String group, Measure temperatureInfo) {
-		final RoomTemperatureData temperatureInfoData = storage.computeIfAbsent(group, (x) -> { return new RoomTemperatureData(); });
+	private void storeInBuffer(String room, Measure temperatureInfo) {
+		final RoomTemperatureData temperatureInfoData = storage.computeIfAbsent(room, (x) -> { return new RoomTemperatureData(vertx, room); });
 		temperatureInfoData.register(temperatureInfo);
 	}
 

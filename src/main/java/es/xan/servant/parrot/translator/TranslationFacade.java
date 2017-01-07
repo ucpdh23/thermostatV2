@@ -4,11 +4,17 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 public class TranslationFacade {
+	
+	private static final String I18NS_SEPARATOR = "\\|\\|";
+	
 	public static Translation translate(String text) {
 		final Translation item = new Translation();
 		
@@ -20,32 +26,37 @@ public class TranslationFacade {
 
 	private static void fillMessageAndAddress(String text, Translation item) {
 		for (TranslatorEnum option : TranslatorEnum.values()) {
-			for (String value : option.mSynonyms) {
-				if (text.toLowerCase().contains(value)) {
-					item.address = option.mAddress;
-					item.forwarding = option.mForwarding;
+			if (option.mPredicate.test(text)) {
+				item.address = option.mAddress;
+				item.forwarding = option.mForwarding;
 					
-					switch (option.mType) {
-					case ON_OFF:
-						if (text.toLowerCase().contains(" on") || text.toLowerCase().contains("encender")) {
-							item.message = "on";
-						} else if (text.toLowerCase().contains(" off") || text.toLowerCase().contains("apagar")) {
-							item.message = "off";
-						}
-						break;
-					case GET:
-						item.message = "FW_GET";
-						break;
-					case COPY:
-						item.message = text;
-						break;
-					case OPERATION:
-						item.message = "OPERATION";
-						break;
+				switch (option.mType) {
+				case ON_OFF:
+					if (text.toLowerCase().contains(" on") || text.toLowerCase().contains("encender")) {
+						item.message = "on";
+					} else if (text.toLowerCase().contains(" off") || text.toLowerCase().contains("apagar")) {
+						item.message = "off";
 					}
+					break;
+				case GET:
+					item.message = "FW_GET";
+					break;
+				case COPY:
+					item.message = text;
+					break;
+				case OPERATION:
+					item.message = "OPERATION";
+					break;
+				case DYNAMIC:
+					item.message = option.mFunction.apply(tokenizer(text));
 				}
 			}
 		}
+	}
+	
+
+	private static String[] tokenizer(String text) {
+		return text.split(" ");
 	}
 
 	private static void fillTimeInformation(String message, Translation item) {
@@ -105,5 +116,43 @@ public class TranslationFacade {
 	
 	private static void addEveryDayInfo(Translation item) {
 		item.everyDay = true;
+	}
+	
+	public static Predicate<String> messageIs(String[] options) {
+		return (String text) -> {
+			return Arrays.stream(options).
+					flatMap(Pattern.compile(I18NS_SEPARATOR)::splitAsStream).
+					parallel().
+					anyMatch(it -> text.toLowerCase().equals(it));
+		};
+	}
+	
+	public static Predicate<String> messageContains(String[] options) {
+		return (String text) -> {
+			return Arrays.stream(options).
+					flatMap(Pattern.compile(I18NS_SEPARATOR)::splitAsStream).
+					parallel().
+					anyMatch(it -> text.toLowerCase().contains(it));
+		};
+	}
+
+	public static Function<String[],String> send(String input) {
+		
+		return (String[] tokens) -> {
+			return input;
+		};
+	}
+	
+	public static Function<String[],String> nextTokenTo(String input) {
+		
+		return (String[] tokens) -> {
+			for (int i=0; i < tokens.length - 1; i++) {
+				if (input.equals(tokens[i])) {
+					return tokens[i + 1];
+				}
+			}
+			
+			return "";
+		};
 	}
 }

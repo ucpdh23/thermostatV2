@@ -29,5 +29,13 @@
     "__comment__" : "",
     "url" : "",
     "token" : ""
+  },
+  "sensors" : {
+  	"server":"",
+  	"usr":"",
+  	"pws":"",
+  	"items" : [
+  		{"name" : "", "command" : ""}
+  	]
   }
 }

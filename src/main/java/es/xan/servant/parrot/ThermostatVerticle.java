@@ -67,10 +67,6 @@ public class ThermostatVerticle extends Verticle implements Handler<Message<Stri
 		}
 	}
 
-	private void _send(String operation) throws ClientProtocolException, IOException {
-		logger.info("setting thermostat to " + operation);
-	}
-
 	private void send(String operation) throws ClientProtocolException, IOException {
 		logger.info("setting thermostat to " + operation);
 		

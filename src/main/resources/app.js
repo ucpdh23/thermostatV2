@@ -13,3 +13,4 @@ container.deployVerticle("es.xan.servant.parrot.WebServerVerticle", config);
 container.deployVerticle("es.xan.servant.parrot.TemperatureVerticle", config);
 container.deployVerticle("es.xan.servant.parrot.NetworkVerticle", config);
 container.deployVerticle("es.xan.servant.parrot.HomeVerticle", config);
+container.deployVerticle("es.xan.servant.parrot.SensorVerticle", config);

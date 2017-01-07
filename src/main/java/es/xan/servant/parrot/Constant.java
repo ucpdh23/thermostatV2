@@ -4,7 +4,11 @@ public class Constant {
 	public static final String BRAIN_VERTICLE = "communication.receive";
 	public static final String PARRONT_VERTICLE = "communication.send";
 	public static final String THERMOSTAT_VERTICLE = "thermostat";
+	public static final String QUESTIONS_VERTICLE = "questions";
+	public static final String QUESTIONS_VERTICLE_REPLY = "questions.reply";
+	
 	public static final String TEMPERATURE_VERTICLE = "temperature";
+	public static final String SENSOR_VERTICLE = "sensor";
 	public static final String HOME_VERTICLE = "HOME_VERTICLE";
 	public static final String CORE_VERTICLE = "core";
 	public static final String CHECK_NETWORK_MESSAGE = "Network.Check";
@@ -23,5 +27,5 @@ public class Constant {
 	public static final String OK_MESSAGE = "ok";
 	public static final String KO_MESSAGE = "ko";
 	
-	public static final String NO_TEMPERATURE_INFO = "temperature.noData";
+	public static final String EVENT_NO_TEMPERATURE_INFO = "temperature.noData";
 }

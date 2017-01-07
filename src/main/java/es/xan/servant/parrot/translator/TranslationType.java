@@ -6,7 +6,8 @@ public enum TranslationType {
 	ON_OFF(""),
 	GET("FW_GET"),
 	COPY(""),
-	OPERATION("");
+	OPERATION(""),
+	DYNAMIC("");
 	
 	String matching;
 	
