@@ -32,10 +32,7 @@ public class HomeVerticle extends Verticle implements Handler<Message<JsonElemen
 		vertx.eventBus().registerHandler(Constant.REM_NETWORK_DEVICES_MESSAGE,	this);
 		vertx.eventBus().registerHandler(Constant.EVENT_NO_TEMPERATURE_INFO,			this);
 		
-		
 		final JsonArray configuration = container.config().getArray("home");
-		
-		System.out.println("after config " + configuration);
 		
 		for (int i=0; i < configuration.asArray().size(); i++) {
 			final JsonObject personInfo = (JsonObject) configuration.asArray().get(i);

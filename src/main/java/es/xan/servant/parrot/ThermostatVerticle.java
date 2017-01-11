@@ -18,9 +18,10 @@ import org.vertx.java.core.Handler;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.core.logging.Logger;
-import org.vertx.java.platform.Verticle;
 
-public class ThermostatVerticle extends Verticle implements Handler<Message<String>> {
+import es.xan.servant.AbstractVerticle;
+
+public class ThermostatVerticle extends AbstractVerticle implements Handler<Message<String>> {
 
 	private CloseableHttpClient httpclient;
 
@@ -39,6 +40,16 @@ public class ThermostatVerticle extends Verticle implements Handler<Message<Stri
 		httpclient = HttpClients.createDefault();
 		
 		vertx.eventBus().registerHandler(Constant.THERMOSTAT_VERTICLE, this);
+		
+		try {
+			createScheduler("0 30 22 * * ?", id -> { 
+				if (ThermostatVerticle.this.boilerOn) {
+					vertx.eventBus().publish(Constant.THERMOSTAT_VERTICLE, "off");
+				}
+				});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		boilerOn = false;
 		

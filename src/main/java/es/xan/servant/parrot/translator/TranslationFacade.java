@@ -118,7 +118,7 @@ public class TranslationFacade {
 		item.everyDay = true;
 	}
 	
-	public static Predicate<String> messageIs(String[] options) {
+	public static Predicate<String> messageIs(String...options) {
 		return (String text) -> {
 			return Arrays.stream(options).
 					flatMap(Pattern.compile(I18NS_SEPARATOR)::splitAsStream).
@@ -127,7 +127,7 @@ public class TranslationFacade {
 		};
 	}
 	
-	public static Predicate<String> messageContains(String[] options) {
+	public static Predicate<String> messageContains(String...options) {
 		return (String text) -> {
 			return Arrays.stream(options).
 					flatMap(Pattern.compile(I18NS_SEPARATOR)::splitAsStream).
