@@ -41,7 +41,7 @@ public abstract class AbstractVerticle extends Verticle {
 	private void createScheduler(Long myId, String cronExpression, Consumer<Long> consumer) throws Exception {
 		long delay = convertInDelay(cronExpression);
 		
-		long vertxId = vertx.setTimer(delay,
+		long vertxId = vertx.setTimer(delay * 1000,
 				id -> {
 					try {
 						consumer.accept(id);
