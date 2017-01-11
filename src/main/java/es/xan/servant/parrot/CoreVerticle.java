@@ -35,6 +35,13 @@ public class CoreVerticle extends Verticle implements Handler<Message<String>> {
 				
 				eb.publish(Constant.PARRONT_VERTICLE, ParrotUtils.createMessage(email, Constant.PARROT_CREATE_CHAT));
 			}
+		} else if (Constant.BOILER_ON.equals(body)) {
+			for (Object item : configuration.toArray()) {
+				LinkedHashMap<String,String> emailInfo = (LinkedHashMap<String, String>) item;
+				String email = emailInfo.get("email");
+				
+				eb.publish(Constant.PARRONT_VERTICLE, ParrotUtils.createMessage(email, "Boiler is on"));
+			}
 		}
 	}
 

@@ -20,6 +20,7 @@ public class Constant {
 	
 	public static final String PARROT_CREATE_CHAT = "CREATE_CHAT";
 	public static final String CORE_CHAT_ACTIVE = "CHAT_ACTIVE";
+	public static final String BOILER_ON = "BOILER_ON";
 	public static final String QUESTIONS = "QUESTIONS";
 	public static final String OPERATION_BOILER_STATE_CHECKER = "OP_BOILER_CHECKER";
 	

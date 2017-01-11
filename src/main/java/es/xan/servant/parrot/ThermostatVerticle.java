@@ -42,9 +42,9 @@ public class ThermostatVerticle extends AbstractVerticle implements Handler<Mess
 		vertx.eventBus().registerHandler(Constant.THERMOSTAT_VERTICLE, this);
 		
 		try {
-			createScheduler("0 30 22 * * ?", id -> { 
+			createScheduler("0 0 22 * * ?", id -> { 
 				if (ThermostatVerticle.this.boilerOn) {
-					vertx.eventBus().publish(Constant.THERMOSTAT_VERTICLE, "off");
+					vertx.eventBus().publish(Constant.CORE_VERTICLE, Constant.BOILER_ON);
 				}
 				});
 		} catch (Exception e) {
